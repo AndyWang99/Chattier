@@ -5,9 +5,12 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.github.nkzawa.emitter.Emitter;
@@ -46,18 +49,12 @@ public class MainActivity extends AppCompatActivity {
                 MainActivity.this.runOnUiThread(new Runnable() {                                    // run on UI thread so that views can be added or modified
                     @Override
                     public void run() {
-                        JSONObject data = (JSONObject) args[0];
-                        String newUserName = "";
-
-                        try {
-                            newUserName = data.getString("name");                             // get the name of the user who just joined
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-
+                        String newUserName = args[0].toString();                                    // get the name of the user who just joined
                         TextView newUserJoinedView = new TextView(MainActivity.this);
                         newUserJoinedView.setText(newUserName + " has joined the chat.");           // notifying other users of the new user's name
+                        newUserJoinedView.setGravity(Gravity.CENTER);
                         chat.addView(newUserJoinedView);
+                        scrollChatToBottom();
                     }
                 });
             }
@@ -78,7 +75,9 @@ public class MainActivity extends AppCompatActivity {
 
                         TextView userLeftView = new TextView(MainActivity.this);
                         userLeftView.setText(disconnectedName + " has left the chat.");             // notifying other users of the leaving user's name
+                        userLeftView.setGravity(Gravity.CENTER);
                         chat.addView(userLeftView);
+                        scrollChatToBottom();
                     }
                 });
             }
@@ -101,7 +100,33 @@ public class MainActivity extends AppCompatActivity {
 
                         TextView nameChanged = new TextView(MainActivity.this);
                         nameChanged.setText(oldName + " has changed their name to " + newName + ".");   // notifying other users of the change in names
+                        nameChanged.setGravity(Gravity.CENTER);
                         chat.addView(nameChanged);
+                        scrollChatToBottom();
+                    }
+                });
+            }
+        }).on("receiveMessage", new Emitter.Listener() {
+            @Override
+            public void call(final Object... args) {
+                MainActivity.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        JSONObject data = (JSONObject) args[0];
+                        String name = "";
+                        String message = "";
+
+                        try {
+                            name = data.getString("name");                                    // get the sending user's name
+                            message = data.getString("message");                              // get the message that was sent
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
+                        TextView displayMessage = new TextView(MainActivity.this);
+                        displayMessage.setText(name + ": " + message);                              // display the message to the receiving client
+                        chat.addView(displayMessage);
+                        scrollChatToBottom();
                     }
                 });
             }
@@ -115,7 +140,8 @@ public class MainActivity extends AppCompatActivity {
 
         SharedPreferences prefs = getApplicationContext()
                 .getSharedPreferences("name", Context.MODE_PRIVATE);
-        String name = prefs.getString("name", "");
+        final String name = prefs.getString("name", "");
+        final LinearLayout chat = findViewById(R.id.chat);
 
         if (name == "") {
             // user has not entered a name yet, so make them enter a name
@@ -144,6 +170,34 @@ public class MainActivity extends AppCompatActivity {
                     startActivity(intent);
                 }
             });
+
+            // button to submit the text inputted in the EditText to the chat
+            final EditText inputText = findViewById(R.id.input_text);
+            Button enterText = findViewById(R.id.submit_text);
+            enterText.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    String myInput = inputText.getText().toString();
+                    if (!myInput.matches("")) {                                   // only submit if EditText is not empty
+                        TextView message = new TextView(MainActivity.this);
+                        message.setText(name + ": " + myInput);
+                        chat.addView(message);                                           // showing the message on the sender's client
+                        scrollChatToBottom();
+                        socket.emit("sendMessage", myInput);                       // send message to server to relay to other clients
+                        inputText.setText("");                                           // clearing the text after the user sends their message
+                    }
+                }
+            });
         }
+    }
+
+    public void scrollChatToBottom() {
+        final ScrollView chatScroll = findViewById(R.id.chat_scroll);
+        chatScroll.post(new Runnable() {
+            @Override
+            public void run() {
+                chatScroll.fullScroll(ScrollView.FOCUS_DOWN);           // scrolls the chat to the bottom
+            }
+        });
     }
 }

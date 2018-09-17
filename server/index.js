@@ -33,7 +33,7 @@ io.on('connection', function(socket) {
 	});
 
 	socket.on('updateUserName', function(data) {
-         for (var i = 0; i < users.length; i++) {
+        for (var i = 0; i < users.length; i++) {
             if (socket.id == users[i].id) {                              	    // search for the user by their socket id
                 var oldName = users[i].name;
                 users[i].name = data;                                           // replace their old name with their new one onto the server
@@ -41,6 +41,16 @@ io.on('connection', function(socket) {
                 socket.broadcast.emit('broadcastNewName', nameSwapped);         // notify all other clients that the user changed their name
             }
         }
+	});
+
+	socket.on('sendMessage', function(data) {
+	    var name = "";
+        for (var i = 0; i < users.length; i++) {
+            if (socket.id == users[i].id) {
+                name = users[i].name;                                               // find the name of the user who sent the message
+            }
+        }
+	    socket.broadcast.emit('receiveMessage', { name: name, message: data });    // tell other users message that was sent and the user who sent it
 	});
 });
 

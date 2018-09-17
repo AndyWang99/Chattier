@@ -22,16 +22,16 @@
         app:layout_constraintTop_toBottomOf="@+id/your_name" />
 
     <ScrollView
-        android:id="@+id/scrollView2"
+        android:id="@+id/chat_scroll"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginBottom="12dp"
         android:layout_marginEnd="8dp"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="6dp"
-        app:layout_constraintBottom_toTopOf="@+id/your_name"
+        app:layout_constraintBottom_toTopOf="@+id/submit_text"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -45,31 +45,60 @@
             tools:layout_editor_absoluteY="318dp" />
     </ScrollView>
 
+    <EditText
+        android:id="@+id/input_text"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:layout_marginEnd="7dp"
+        android:layout_marginLeft="14dp"
+        android:layout_marginRight="7dp"
+        android:layout_marginStart="14dp"
+        android:hint="Say something!"
+        android:singleLine="true"
+        app:layout_constraintBottom_toBottomOf="@+id/submit_text"
+        app:layout_constraintEnd_toStartOf="@+id/submit_text"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/submit_text" />
+
     <TextView
         android:id="@+id/your_name"
         android:layout_width="91dp"
-        android:layout_height="21dp"
+        android:layout_height="20dp"
         android:text="Your Name Is:"
         android:textSize="14sp"
         app:layout_constraintBottom_toTopOf="@+id/change_name"
         app:layout_constraintEnd_toEndOf="@+id/name"
         app:layout_constraintStart_toStartOf="@+id/name"
-        app:layout_constraintTop_toBottomOf="@+id/scrollView2" />
+        app:layout_constraintTop_toBottomOf="@+id/submit_text" />
 
     <TextView
         android:id="@+id/name"
         android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_height="47dp"
         android:layout_marginBottom="15dp"
         android:layout_marginEnd="9dp"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="9dp"
         android:layout_marginStart="20dp"
-        android:layout_marginTop="2dp"
+        android:layout_marginTop="23dp"
         android:gravity="center_vertical|center_horizontal"
         android:textSize="24sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/change_name"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/your_name" />
+        app:layout_constraintTop_toTopOf="@+id/your_name"
+        app:layout_constraintVertical_bias="0.991" />
+
+    <Button
+        android:id="@+id/submit_text"
+        android:layout_width="wrap_content"
+        android:layout_height="49dp"
+        android:layout_marginBottom="14dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        android:text="enter"
+        app:layout_constraintBottom_toTopOf="@+id/your_name"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/input_text"
+        app:layout_constraintTop_toBottomOf="@+id/chat_scroll" />
 </android.support.constraint.ConstraintLayout>
