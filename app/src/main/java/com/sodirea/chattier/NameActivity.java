@@ -27,15 +27,18 @@ public class NameActivity extends AppCompatActivity {
                 // check that their name is not empty
                 String name = enterName.getText().toString();
                 if (name.matches("")) {
-                    Toast toast = Toast.makeText(NameActivity.this, "You must enter a name!", Toast.LENGTH_LONG);
+                    Toast toast = Toast.makeText(NameActivity.this,
+                            "You must enter a name!", Toast.LENGTH_LONG);
                     toast.show();
                 } else {
                     // put new name in prefs, send old name back to main activity
-                    SharedPreferences prefs = getApplicationContext().getSharedPreferences("name", Context.MODE_PRIVATE);
+                    SharedPreferences prefs = getApplicationContext()
+                            .getSharedPreferences("name", Context.MODE_PRIVATE);
                     String oldName = prefs.getString("name", "");
                     SharedPreferences.Editor editor = prefs.edit();
                     editor.putString("name", name);
                     editor.apply();
+
                     Intent intent = new Intent(NameActivity.this, MainActivity.class);
                     intent.putExtra("nameChanged", oldName);
                     startActivity(intent);

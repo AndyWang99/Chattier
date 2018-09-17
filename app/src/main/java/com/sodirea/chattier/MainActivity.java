@@ -3,7 +3,6 @@ package com.sodirea.chattier;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -32,35 +31,37 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void configureSocketEvents() {
-        final SharedPreferences prefs = getApplicationContext().getSharedPreferences("name", Context.MODE_PRIVATE);
-        ConstraintLayout layout = findViewById(R.id.layout);
+        final SharedPreferences prefs = getApplicationContext()
+                .getSharedPreferences("name", Context.MODE_PRIVATE);
         final LinearLayout chat = findViewById(R.id.chat);
 
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
             public void call(Object... args) {
-                socket.emit("newPlayerName",  prefs.getString("name", ""));
+                socket.emit("newUserName", prefs.getString("name", ""));              // when the user first connects, tell the server the user's name
             }
-        }).on("newPlayerJoined", new Emitter.Listener() {
+        }).on("newUserJoined", new Emitter.Listener() {
             @Override
             public void call(final Object... args) {
-                MainActivity.this.runOnUiThread(new Runnable() {
+                MainActivity.this.runOnUiThread(new Runnable() {                                    // run on UI thread so that views can be added or modified
                     @Override
                     public void run() {
                         JSONObject data = (JSONObject) args[0];
-                        String newPlayerName = "";
+                        String newUserName = "";
+
                         try {
-                            newPlayerName = data.getString("name");
+                            newUserName = data.getString("name");                             // get the name of the user who just joined
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
-                        TextView newPlayerJoinedView = new TextView(MainActivity.this);
-                        newPlayerJoinedView.setText(newPlayerName + " has joined the chat.");
-                        chat.addView(newPlayerJoinedView);
+
+                        TextView newUserJoinedView = new TextView(MainActivity.this);
+                        newUserJoinedView.setText(newUserName + " has joined the chat.");           // notifying other users of the new user's name
+                        chat.addView(newUserJoinedView);
                     }
                 });
             }
-        }).on("playerLeft", new Emitter.Listener() {
+        }).on("userLeft", new Emitter.Listener() {
             @Override
             public void call(final Object... args) {
                 MainActivity.this.runOnUiThread(new Runnable() {
@@ -68,14 +69,16 @@ public class MainActivity extends AppCompatActivity {
                     public void run() {
                         JSONObject data = (JSONObject) args[0];
                         String disconnectedName = "";
+
                         try {
-                            disconnectedName = data.getString("name");
+                            disconnectedName = data.getString("name");                        // get the name of the user who just left
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
-                        TextView playerLeftView = new TextView(MainActivity.this);
-                        playerLeftView.setText(disconnectedName + " has left the chat.");
-                        chat.addView(playerLeftView);
+
+                        TextView userLeftView = new TextView(MainActivity.this);
+                        userLeftView.setText(disconnectedName + " has left the chat.");             // notifying other users of the leaving user's name
+                        chat.addView(userLeftView);
                     }
                 });
             }
@@ -88,14 +91,16 @@ public class MainActivity extends AppCompatActivity {
                         JSONObject data = (JSONObject) args[0];
                         String oldName = "";
                         String newName = "";
+
                         try {
-                            oldName = data.getString("oldName");
-                            newName = data.getString("newName");
+                            oldName = data.getString("oldName");                                 // get the user's old name from which they changed from
+                            newName = data.getString("newName");                                 // get the user's new name
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
+
                         TextView nameChanged = new TextView(MainActivity.this);
-                        nameChanged.setText(oldName + " has changed their name to " + newName + ".");
+                        nameChanged.setText(oldName + " has changed their name to " + newName + ".");   // notifying other users of the change in names
                         chat.addView(nameChanged);
                     }
                 });
@@ -108,24 +113,25 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        SharedPreferences prefs = getApplicationContext().getSharedPreferences("name", Context.MODE_PRIVATE);
+        SharedPreferences prefs = getApplicationContext()
+                .getSharedPreferences("name", Context.MODE_PRIVATE);
         String name = prefs.getString("name", "");
-        ConstraintLayout layout = findViewById(R.id.layout);
-        LinearLayout chat = findViewById(R.id.chat);
 
-        if (name == "") { // user has not entered a name yet; it is their first time opening the application
+        if (name == "") {
+            // user has not entered a name yet, so make them enter a name
             Intent intent = new Intent(MainActivity.this, NameActivity.class);
             startActivity(intent);
         } else {
-            // this only applies if they just changed their name
+            // check if the user changed their name, and tell the server to update accordingly
             Intent previousIntent = getIntent();
             String oldName = previousIntent.getStringExtra("nameChanged");
             if (oldName != null) {
-                socket.emit("updatePlayerName", name);
+                socket.emit("updateUserName", name);
             }
 
-            socket.connect();
-            configureSocketEvents();
+            socket.connect();                                      // connecting client to server
+            configureSocketEvents();                               // creating emitter listeners
+
             TextView nameView = findViewById(R.id.name);
             nameView.setText(name);
 
