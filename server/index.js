@@ -3,6 +3,8 @@ var server = require('http').Server(app);
 var io = require('socket.io')(server);
 
 var users = [];
+var chatHistory = [];
+const CHAT_HISTORY_MAX_LENGTH = 20;
 
 server.listen(8080, function() {
 	console.log("Server is now running...");
@@ -10,6 +12,9 @@ server.listen(8080, function() {
 
 io.on('connection', function(socket) {
 	console.log("User Connected!")
+    for (var i = 0; i < chatHistory.length; i++) {
+        socket.emit('receiveMessage', chatHistory[i]);
+    }
 	socket.on('disconnect', function() {
 	    // when a user disconnects, search for their id, remove them from the list of users, and send their name to the client
         var disconnectedName = "";
@@ -47,9 +52,13 @@ io.on('connection', function(socket) {
 	    var name = "";
         for (var i = 0; i < users.length; i++) {
             if (socket.id == users[i].id) {
-                name = users[i].name;                                               // find the name of the user who sent the message
+                name = users[i].name;                                              // find the name of the user who sent the message
             }
         }
+        if (chatHistory.length > CHAT_HISTORY_MAX_LENGTH) {
+            chatHistory.shift();                                                   // delete the earliest entry in the chat if there are more than 20 entries
+        }
+        chatHistory.push({ name: name, message: data });                           // push new entry into the array
 	    socket.broadcast.emit('receiveMessage', { name: name, message: data });    // tell other users message that was sent and the user who sent it
 	});
 });
